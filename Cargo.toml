@@ -1,6 +1,8 @@
 [package]
 name = "num"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
+device_query = "4.0.1"
+enigo = "0.6.1"
