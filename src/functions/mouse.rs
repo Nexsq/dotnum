@@ -6,6 +6,7 @@ use enigo::{
 };
 
 use crate::interpreter::Value;
+use crate::functions::expect_arity;
 use super::BuiltinFn;
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
@@ -13,6 +14,10 @@ pub fn register(map: &mut HashMap<String, BuiltinFn>) {
 }
 
 fn mouse(args: Vec<Value>) -> Value {
+    if let Err(e) = expect_arity("mouse", &args, 3) {
+        return e;
+    }
+
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
 
     let x = match args.get(0) {
@@ -27,8 +32,8 @@ fn mouse(args: Vec<Value>) -> Value {
 
     let coord = match args.get(2) {
         Some(Value::Symbol(s)) => match s.as_str() {
-            "abs" => Coordinate::Abs,
-            "rel" => Coordinate::Rel,
+            "abs" | "absolute" => Coordinate::Abs,
+            "rel" | "relative" => Coordinate::Rel,
             _ => return Value::Bool(false),
         },
         _ => return Value::Bool(false),

@@ -6,6 +6,7 @@ use enigo::{
 };
 
 use crate::interpreter::Value;
+use crate::functions::expect_arity;
 use super::BuiltinFn;
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
@@ -13,6 +14,10 @@ pub fn register(map: &mut HashMap<String, BuiltinFn>) {
 }
 
 fn scroll(args: Vec<Value>) -> Value {
+    if let Err(e) = expect_arity("scroll", &args, 2) {
+        return e;
+    }
+
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
 
     let amount = match args.get(0) {
@@ -22,8 +27,8 @@ fn scroll(args: Vec<Value>) -> Value {
 
     let axis = match args.get(1) {
         Some(Value::Symbol(s)) => match s.as_str() {
-            "ver" => Axis::Vertical,
-            "hor" => Axis::Horizontal,
+            "ver" | "vertical" => Axis::Vertical,
+            "hor" | "horizontal" => Axis::Horizontal,
             _ => return Value::Bool(false),
         },
         _ => return Value::Bool(false),

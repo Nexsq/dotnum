@@ -33,7 +33,7 @@ impl Lexer {
     }
 
     fn next_token(&mut self) -> Token {
-        if let Some(k) = self.skip_ws() {
+        if let Some(k) = self.skip_ws_and_comments() {
             return self.make(k);
         }
 
@@ -80,32 +80,32 @@ impl Lexer {
         self.make(kind)
     }
 
-    fn make(&self, kind: TokenKind) -> Token {
-        Token { kind, line: self.line, col: self.col }
-    }
-
-    fn bump(&mut self) {
-        self.pos += 1;
-        self.col += 1;
-    }
-
-    fn bump2(&mut self) {
-        self.pos += 2;
-        self.col += 2;
-    }
-
-    fn skip_ws(&mut self) -> Option<TokenKind> {
+    fn skip_ws_and_comments(&mut self) -> Option<TokenKind> {
         let mut newline = false;
-        while let Some(c) = self.peek() {
-            if c == '\n' {
-                self.pos += 1;
-                self.line += 1;
-                self.col = 1;
-                newline = true;
-            } else if c.is_whitespace() {
-                self.bump();
-            } else {
-                break;
+
+        loop {
+            match self.peek() {
+                Some('\n') => {
+                    self.pos += 1;
+                    self.line += 1;
+                    self.col = 1;
+                    newline = true;
+                }
+                Some(c) if c.is_whitespace() => {
+                    self.bump();
+                }
+                Some('#') => {
+                    while let Some(c) = self.peek() {
+                        self.pos += 1;
+                        if c == '\n' {
+                            self.line += 1;
+                            self.col = 1;
+                            newline = true;
+                            break;
+                        }
+                    }
+                }
+                _ => break,
             }
         }
 
@@ -124,7 +124,22 @@ impl Lexer {
                 }
             }
         }
+
         None
+    }
+
+    fn make(&self, kind: TokenKind) -> Token {
+        Token { kind, line: self.line, col: self.col }
+    }
+
+    fn bump(&mut self) {
+        self.pos += 1;
+        self.col += 1;
+    }
+
+    fn bump2(&mut self) {
+        self.pos += 2;
+        self.col += 2;
     }
 
     fn peek(&self) -> Option<char> {
