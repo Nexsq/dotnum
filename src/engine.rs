@@ -1,17 +1,18 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use crate::{interpreter::{Context, Value}, ast::Node};
 
 pub type CommandFn = fn(&mut Context, Vec<Value>);
 
 pub struct Engine {
-    ctx: Context,
+    ctx: Arc<Mutex<Context>>,
     commands: HashMap<String, CommandFn>,
 }
 
 impl Engine {
     pub fn new() -> Self {
         let mut e = Self {
-            ctx: Context::new(),
+            ctx: Arc::new(Mutex::new(Context::new())),
             commands: HashMap::new(),
         };
 
@@ -25,6 +26,7 @@ impl Engine {
     }
 
     pub fn run(&mut self, nodes: Vec<Node>) -> Result<(), String> {
-        self.ctx.run_with_commands(&nodes, &self.commands)
+        let mut guard = self.ctx.lock().unwrap();
+        guard.run_with_commands(&nodes, &self.commands)
     }
 }

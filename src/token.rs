@@ -5,6 +5,7 @@ pub enum TokenKind {
     Elif,
     Else,
     Loop,
+    While,
     Break,
     Continue,
     True,

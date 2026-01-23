@@ -1,9 +1,9 @@
 use crate::engine::Engine;
 
-pub mod sleep;
 pub mod print;
+pub mod sleep;
 
 pub fn register_all(engine: &mut Engine) {
-    sleep::register(engine);
     print::register(engine);
+    sleep::register(engine);
 }

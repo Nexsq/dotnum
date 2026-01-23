@@ -29,11 +29,22 @@ impl Parser {
             TokenKind::Var => self.var_decl(),
             TokenKind::If => self.if_stmt(),
             TokenKind::Loop => self.loop_stmt(),
+            TokenKind::While => self.while_stmt(),
             TokenKind::Break => { self.advance(); self.match_tok(TokenKind::Semicolon); Ok(Node::Break) }
             TokenKind::Continue => { self.advance(); self.match_tok(TokenKind::Semicolon); Ok(Node::Continue) }
             TokenKind::Ident(_) => self.call_or_assign(),
             _ => self.err("Unexpected token"),
         }
+    }
+
+    fn while_stmt(&mut self) -> Result<Node, String> {
+        self.advance();
+        self.expect(TokenKind::LParen)?;
+        let cond = self.expr()?;
+        self.expect(TokenKind::RParen)?;
+        while self.match_tok(TokenKind::Semicolon) {}
+        let body = self.block()?;
+        Ok(Node::While { cond, body })
     }
 
     fn var_decl(&mut self) -> Result<Node, String> {
@@ -49,14 +60,24 @@ impl Parser {
         let name = self.ident()?;
         if self.match_tok(TokenKind::Eq) {
             let value = self.expr()?;
-            self.expect(TokenKind::Semicolon)?;
+            self.terminator()?;
             Ok(Node::Assign { name, value })
         } else {
             self.expect(TokenKind::LParen)?;
             let args = self.args()?;
             self.expect(TokenKind::RParen)?;
-            self.expect(TokenKind::Semicolon)?;
+            self.terminator()?;
             Ok(Node::Call { name, args })
+        }
+    }
+
+    fn terminator(&mut self) -> Result<(), String> {
+        if self.match_tok(TokenKind::Semicolon) {
+            return Ok(());
+        }
+        match self.peek().kind {
+            TokenKind::RBrace | TokenKind::Else | TokenKind::Elif | TokenKind::Eof => Ok(()),
+            _ => self.err("Expected semicolon"),
         }
     }
 
@@ -65,6 +86,7 @@ impl Parser {
         self.expect(TokenKind::LParen)?;
         let cond = self.expr()?;
         self.expect(TokenKind::RParen)?;
+        while self.match_tok(TokenKind::Semicolon) {}
         let then_body = self.block()?;
 
         while self.match_tok(TokenKind::Semicolon) {}
@@ -85,6 +107,7 @@ impl Parser {
         self.expect(TokenKind::LParen)?;
         let cond = self.expr()?;
         self.expect(TokenKind::RParen)?;
+        while self.match_tok(TokenKind::Semicolon) {}
         let then_body = self.block()?;
 
         while self.match_tok(TokenKind::Semicolon) {}
@@ -105,6 +128,7 @@ impl Parser {
         self.expect(TokenKind::LParen)?;
         let times = self.expr()?;
         self.expect(TokenKind::RParen)?;
+        while self.match_tok(TokenKind::Semicolon) {}
         let body = self.block()?;
         Ok(Node::Loop { times, body })
     }

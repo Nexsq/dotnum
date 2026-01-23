@@ -31,6 +31,7 @@ pub enum Node {
     Assign { name: String, value: Expr },
     Call { name: String, args: Vec<Expr> },
     Loop { times: Expr, body: Vec<Node> },
+    While { cond: Expr, body: Vec<Node> },
     If { cond: Expr, then_body: Vec<Node>, else_body: Option<Vec<Node>> },
     Break,
     Continue,

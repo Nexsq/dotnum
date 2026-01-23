@@ -79,6 +79,18 @@ impl Context {
                 }
             }
 
+            Node::While { cond, body } => {
+                while let Value::Bool(true) = self.eval(cond)? {
+                    for stmt in body {
+                        match self.exec(stmt, cmds)? {
+                            Flow::None => {}
+                            Flow::Continue => break,
+                            Flow::Break => return Ok(Flow::None),
+                        }
+                    }
+                }
+            }
+
             Node::If { cond, then_body, else_body } => {
                 if let Value::Bool(b) = self.eval(cond)? {
                     if b {
@@ -124,7 +136,7 @@ impl Context {
                 match (op, v) {
                     (Op::Sub, Value::Num(n)) => Ok(Value::Num(-n)),
                     (Op::Not, Value::Bool(b)) => Ok(Value::Bool(!b)),
-                    _ => Err(format!("Invalid unary op {:?} for value", op)),
+                    _ => Err("Invalid unary op".into()),
                 }
             }
 
@@ -136,6 +148,12 @@ impl Context {
                     (Value::Num(x), Value::Num(y), Op::Sub) => Ok(Value::Num(x - y)),
                     (Value::Num(x), Value::Num(y), Op::Mul) => Ok(Value::Num(x * y)),
                     (Value::Num(x), Value::Num(y), Op::Div) => Ok(Value::Num(x / y)),
+
+                    (Value::Str(a), Value::Str(b), Op::Add) => Ok(Value::Str(a + &b)),
+                    (Value::Str(a), Value::Num(b), Op::Add) => Ok(Value::Str(a + &b.to_string())),
+                    (Value::Num(a), Value::Str(b), Op::Add) => Ok(Value::Str(a.to_string() + &b)),
+                    (Value::Str(a), Value::Bool(b), Op::Add) => Ok(Value::Str(a + &b.to_string())),
+                    (Value::Bool(a), Value::Str(b), Op::Add) => Ok(Value::Str(a.to_string() + &b)),
 
                     (Value::Num(x), Value::Num(y), Op::Eq) => Ok(Value::Bool(x == y)),
                     (Value::Num(x), Value::Num(y), Op::Ne) => Ok(Value::Bool(x != y)),
