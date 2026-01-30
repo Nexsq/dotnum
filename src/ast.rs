@@ -50,6 +50,7 @@ pub enum Node {
     },
     Await {
         key: String,
+        negated: bool,
         body: Vec<Node>,
     },
     Break,

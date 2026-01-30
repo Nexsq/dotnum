@@ -52,6 +52,8 @@ impl Parser {
         self.advance();
         self.expect(TokenKind::LParen)?;
 
+        let negated = self.match_tok(TokenKind::Bang);
+
         let key = match &self.advance().kind {
             TokenKind::Ident(s) => s.clone(),
             TokenKind::Number(n) => n.to_string(),
@@ -61,7 +63,7 @@ impl Parser {
         self.expect(TokenKind::RParen)?;
         while self.match_tok(TokenKind::Semicolon) {}
         let body = self.block()?;
-        Ok(Node::Await { key, body })
+        Ok(Node::Await { key, negated, body })
     }
 
     fn func_def(&mut self) -> Result<Node, String> {

@@ -140,14 +140,14 @@ impl Context {
                 self.tasks.lock().unwrap().push(handle);
             }
 
-            Node::Await { key, body } => {
+            Node::Await { key, negated, body } => {
                 let device = DeviceState::new();
 
                 loop {
                     let keys = device.get_keys();
                     let mouse = device.get_mouse().button_pressed;
 
-                    let matched = match key.as_str() {
+                    let pressed = match key.as_str() {
                         "LMB" => mouse[1],
                         "RMB" => mouse[2],
                         "MMB" => mouse[3],
@@ -215,7 +215,7 @@ impl Context {
                                 Keycode::Key9 => d == '9',
                                 _ => false,
                             })
-                        },
+                        }
 
                         k if k.len() == 1 => {
                             let c = k.chars().next().unwrap().to_ascii_lowercase();
@@ -252,6 +252,8 @@ impl Context {
 
                         _ => false,
                     };
+
+                    let matched = if *negated { !pressed } else { pressed };
 
                     if matched {
                         for stmt in body.iter() {
