@@ -35,6 +35,7 @@ pub mod background;
 pub mod get_resolution;
 pub mod color;
 pub mod get_color;
+pub mod process;
 
 pub type BuiltinFn = fn(Vec<Value>) -> Value;
 
@@ -56,4 +57,5 @@ pub fn register_all(map: &mut HashMap<String, BuiltinFn>) {
     get_resolution::register(map);
     color::register(map);
     get_color::register(map);
+    process::register(map);
 }

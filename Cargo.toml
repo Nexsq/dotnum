@@ -3,10 +3,15 @@ name = "num"
 version = "0.1.0"
 edition = "2024"
 
+[profile.release]
+lto = true
+strip = true
+
 [dependencies]
 device_query = "4.0.1"
 enigo = "0.6.1"
 chrono = "0.4.43"
 rand = "0.9.2"
 scrap = "0.5.0"
+sysinfo = "0.38.0"
 winapi = { version = "0.3.9", features = ["winuser", "wincon"] }
