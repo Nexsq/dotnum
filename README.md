@@ -168,4 +168,26 @@ async {
 	}
 }
 ```
+```
+# simple key switch macro
+let key = RAlt
+let running = false
+
+while(true) {
+	await(key) {
+		running = true
+		async {
+			await(!key) {
+				await(key) {
+					running = false
+				}
+			}
+		}
+	}
+	while(running) {
+		print("running")
+		sleep(1000)
+	}
+}
+```
 </details>
