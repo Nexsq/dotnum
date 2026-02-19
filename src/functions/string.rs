@@ -17,7 +17,7 @@ fn string(args: Vec<Value>) -> Value {
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
 
     let text = match args.get(0) {
-        Some(Value::Str(s)) | Some(Value::Key(s)) => s,
+        Some(Value::Str(s)) | Some(Value::Symbol(s)) => s,
         _ => return Value::Error("string expects text".into()),
     };
 

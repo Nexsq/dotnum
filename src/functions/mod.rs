@@ -23,7 +23,6 @@ pub mod exit;
 pub mod get_color;
 pub mod get_mouse;
 pub mod get_resolution;
-pub mod key;
 pub mod mouse;
 pub mod press;
 pub mod print;
@@ -57,5 +56,4 @@ pub fn register_all(map: &mut HashMap<String, BuiltinFn>) {
     get_color::register(map);
     process::register(map);
     abs::register(map);
-    key::register(map);
 }

@@ -16,15 +16,9 @@ fn click(args: Vec<Value>) -> Value {
 
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
 
-    let sym_owned;
     let sym = match args.get(0) {
-        Some(Value::Key(s)) => s.as_str(),
-        Some(Value::Str(s)) => s.as_str(),
-        Some(Value::Num(n)) => {
-            sym_owned = n.to_string();
-            &sym_owned
-        }
-        _ => return Value::Error("press expects a key".into()),
+        Some(Value::Symbol(s)) | Some(Value::Str(s)) => s.as_str(),
+        _ => return Value::Error("click expects button or key name".into()),
     };
 
     match sym {
@@ -42,23 +36,6 @@ fn click(args: Vec<Value>) -> Value {
         }
         "MB5" => {
             let _ = enigo.button(Button::Forward, Click);
-        }
-
-        s if s.len() == 1 && s.chars().next().unwrap().is_ascii_digit() => {
-            let k = match s {
-                "0" => Key::Num0,
-                "1" => Key::Num1,
-                "2" => Key::Num2,
-                "3" => Key::Num3,
-                "4" => Key::Num4,
-                "5" => Key::Num5,
-                "6" => Key::Num6,
-                "7" => Key::Num7,
-                "8" => Key::Num8,
-                "9" => Key::Num9,
-                _ => unreachable!(),
-            };
-            let _ = enigo.key(k, Click);
         }
 
         s if s.len() == 1 => {

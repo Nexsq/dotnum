@@ -16,7 +16,7 @@ fn get_resolution(args: Vec<Value>) -> Value {
     }
 
     let axis = match &args[0] {
-        Value::Key(s) | Value::Str(s) => s.as_str(),
+        Value::Symbol(s) | Value::Str(s) => s.as_str(),
         _ => return Value::Error("get_resolution expects axis name".into()),
     };
 

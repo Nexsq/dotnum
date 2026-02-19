@@ -27,7 +27,7 @@ fn mouse(args: Vec<Value>) -> Value {
     };
 
     let coord = match args.get(2) {
-        Some(Value::Key(s)) | Some(Value::Str(s)) => match s.as_str() {
+        Some(Value::Symbol(s)) | Some(Value::Str(s)) => match s.as_str() {
             "abs" | "absolute" => Coordinate::Abs,
             "rel" | "relative" => Coordinate::Rel,
             _ => return Value::Error("mouse expects abs or rel".into()),

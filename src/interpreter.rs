@@ -10,7 +10,7 @@ pub enum Value {
     Num(i64),
     Str(String),
     Bool(bool),
-    Key(String),
+    Symbol(String),
     Error(String),
 }
 
@@ -153,7 +153,12 @@ impl Context {
             Node::Await { key, negated, body } => {
                 let device = DeviceState::new();
 
-                let key = to_key(self.eval(key)?)?;
+                let key = match self.eval(key)? {
+                    Value::Symbol(s) => s,
+                    Value::Str(s) => s,
+                    Value::Num(n) => n.to_string(),
+                    _ => return Err("key must be a symbol, string, or a number".into()),
+                };
 
                 loop {
                     let keys = device.get_keys();
@@ -357,7 +362,7 @@ impl Context {
                 if let Some(v) = self.vars.lock().unwrap().get(name).cloned() {
                     Ok(v)
                 } else {
-                    Ok(Value::Key(name.clone()))
+                    Ok(Value::Symbol(name.clone()))
                 }
             }
 
@@ -457,16 +462,7 @@ fn format_value(v: &Value) -> String {
         Value::Num(n) => n.to_string(),
         Value::Str(s) => s.clone(),
         Value::Bool(b) => b.to_string(),
-        Value::Key(k) => k.clone(),
+        Value::Symbol(s) => s.clone(),
         Value::Error(e) => e.clone(),
-    }
-}
-
-pub fn to_key(v: Value) -> Result<String, String> {
-    match v {
-        Value::Key(k) => Ok(k),
-        Value::Str(s) => Ok(s),
-        Value::Num(n) => Ok(n.to_string()),
-        _ => Err("expected key".into()),
     }
 }

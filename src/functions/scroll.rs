@@ -22,7 +22,7 @@ fn scroll(args: Vec<Value>) -> Value {
     };
 
     let axis = match args.get(1) {
-        Some(Value::Key(s)) | Some(Value::Str(s)) => match s.as_str() {
+        Some(Value::Symbol(s)) | Some(Value::Str(s)) => match s.as_str() {
             "ver" | "vertical" | "v" => Axis::Vertical,
             "hor" | "horizontal" | "h" => Axis::Horizontal,
             _ => return Value::Error("scroll expects ver/hor".into()),

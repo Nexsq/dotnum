@@ -1,14 +1,48 @@
 use scrap::{Capturer, Display};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io::ErrorKind;
-use std::time::Duration;
 
 use super::BuiltinFn;
 use crate::functions::expect_arity;
 use crate::interpreter::Value;
 
+struct CaptureState {
+    capturer: Capturer,
+    width: usize,
+    height: usize,
+    buffer: Vec<u8>,
+}
+
+thread_local! {
+    static STATE: RefCell<Option<CaptureState>> = RefCell::new(None);
+}
+
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("get_color".into(), get_color);
+}
+
+fn with_state<F>(f: F) -> Option<Value>
+where
+    F: FnOnce(&mut CaptureState) -> Value,
+{
+    STATE.with(|cell| {
+        let mut opt = cell.borrow_mut();
+        if opt.is_none() {
+            let display = Display::primary().ok()?;
+            let capturer = Capturer::new(display).ok()?;
+            let width = capturer.width();
+            let height = capturer.height();
+            *opt = Some(CaptureState {
+                capturer,
+                width,
+                height,
+                buffer: vec![0; width * height * 4],
+            });
+        }
+        let state = opt.as_mut()?;
+        Some(f(state))
+    })
 }
 
 fn get_color(args: Vec<Value>) -> Value {
@@ -26,40 +60,33 @@ fn get_color(args: Vec<Value>) -> Value {
         _ => return Value::Error("get_color expects number y".into()),
     };
 
-    let display = match Display::primary() {
-        Ok(d) => d,
-        Err(_) => return Value::Error("failed to read pixel".into()),
-    };
-
-    let mut capturer = match Capturer::new(display) {
-        Ok(c) => c,
-        Err(_) => return Value::Error("failed to read pixel".into()),
-    };
-
-    let width = capturer.width();
-    let height = capturer.height();
-
-    if x >= width || y >= height {
-        return Value::Error("failed to read pixel".into());
-    }
-
-    loop {
-        match capturer.frame() {
+    match with_state(|state| {
+        match state.capturer.frame() {
             Ok(frame) => {
-                let stride = width * 4;
-                let idx = y * stride + x * 4;
-                if idx + 2 >= frame.len() {
-                    return Value::Error("failed to read pixel".into());
-                }
-                let b = frame[idx];
-                let g = frame[idx + 1];
-                let r = frame[idx + 2];
-                return Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b));
+                state.buffer.copy_from_slice(&frame);
             }
-            Err(e) if e.kind() == ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(1));
-            }
+            Err(e) if e.kind() == ErrorKind::WouldBlock => {}
             Err(_) => return Value::Error("failed to read pixel".into()),
         }
+
+        if x >= state.width || y >= state.height {
+            return Value::Error("failed to read pixel".into());
+        }
+
+        let stride = state.width * 4;
+        let idx = y * stride + x * 4;
+
+        if idx + 2 >= state.buffer.len() {
+            return Value::Error("failed to read pixel".into());
+        }
+
+        let b = state.buffer[idx];
+        let g = state.buffer[idx + 1];
+        let r = state.buffer[idx + 2];
+
+        Value::Str(format!("#{:02x}{:02x}{:02x}", r, g, b))
+    }) {
+        Some(v) => v,
+        None => Value::Error("failed to read pixel".into()),
     }
 }

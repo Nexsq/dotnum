@@ -15,7 +15,7 @@ fn process(args: Vec<Value>) -> Value {
     }
 
     let target = match &args[0] {
-        Value::Str(s) | Value::Key(s) => s.to_lowercase(),
+        Value::Str(s) | Value::Symbol(s) => s.to_lowercase(),
         _ => return Value::Error("process expects process name string".into()),
     };
 
