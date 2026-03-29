@@ -2,6 +2,7 @@ use device_query::{DeviceQuery, DeviceState, Keycode};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use enigo::{Enigo, Settings};
 
 use crate::ast::{Expr, Node, Op};
 
@@ -18,9 +19,10 @@ pub enum Value {
 pub struct Context {
     vars: Arc<Mutex<HashMap<String, Value>>>,
     funcs: Arc<Mutex<HashMap<String, Node>>>,
-    cmds: Arc<HashMap<String, fn(Vec<Value>) -> Value>>,
+    cmds: Arc<HashMap<String, fn(&Context, Vec<Value>) -> Value>>,
     tasks: Arc<Mutex<Vec<JoinHandle<()>>>>,
     error: Arc<Mutex<Option<String>>>,
+    pub enigo: Arc<Mutex<Enigo>>,
 }
 
 #[derive(Debug)]
@@ -32,13 +34,14 @@ enum Flow {
 }
 
 impl Context {
-    pub fn new(cmds: HashMap<String, fn(Vec<Value>) -> Value>) -> Self {
+    pub fn new(cmds: HashMap<String, fn(&Context, Vec<Value>) -> Value>) -> Self {
         Self {
             vars: Arc::new(Mutex::new(HashMap::new())),
             funcs: Arc::new(Mutex::new(HashMap::new())),
             cmds: Arc::new(cmds),
             tasks: Arc::new(Mutex::new(Vec::new())),
             error: Arc::new(Mutex::new(None)),
+            enigo: Arc::new(Mutex::new(Enigo::new(&Settings::default()).expect("Enigo fail"))),
         }
     }
 
@@ -109,7 +112,7 @@ impl Context {
                     .collect::<Result<Vec<_>, _>>()?;
 
                 if let Some(cmd) = self.cmds.get(name) {
-                    let result = cmd(vals);
+                    let result = cmd(self, vals);
                     if let Value::Error(e) = result {
                         *self.error.lock().unwrap() = Some(e);
                     }
@@ -170,13 +173,11 @@ impl Context {
                         "MMB" => mouse[3],
                         "MB4" => mouse[4],
                         "MB5" => mouse[5],
-
                         "Enter" | "Return" => keys.contains(&Keycode::Enter),
                         "Space" => keys.contains(&Keycode::Space),
                         "Tab" => keys.contains(&Keycode::Tab),
                         "Esc" | "Escape" => keys.contains(&Keycode::Escape),
                         "Backspace" => keys.contains(&Keycode::Backspace),
-
                         "Ctrl" | "Control" => {
                             keys.contains(&Keycode::LControl) || keys.contains(&Keycode::RControl)
                         }
@@ -194,19 +195,16 @@ impl Context {
                             keys.contains(&Keycode::LMeta) || keys.contains(&Keycode::RMeta)
                         }
                         "CapsLock" | "Caps" => keys.contains(&Keycode::CapsLock),
-
                         "Insert" => keys.contains(&Keycode::Insert),
                         "Delete" | "Del" => keys.contains(&Keycode::Delete),
                         "Home" => keys.contains(&Keycode::Home),
                         "End" => keys.contains(&Keycode::End),
                         "PageUp" | "PgUp" => keys.contains(&Keycode::PageUp),
                         "PageDown" | "PgDown" => keys.contains(&Keycode::PageDown),
-
                         "Up" => keys.contains(&Keycode::Up),
                         "Down" => keys.contains(&Keycode::Down),
                         "Left" => keys.contains(&Keycode::Left),
                         "Right" => keys.contains(&Keycode::Right),
-
                         k if k.starts_with('F') => match k {
                             "F1" => keys.contains(&Keycode::F1),
                             "F2" => keys.contains(&Keycode::F2),
@@ -222,7 +220,6 @@ impl Context {
                             "F12" => keys.contains(&Keycode::F12),
                             _ => false,
                         },
-
                         k if k.len() == 1 && k.chars().next().unwrap().is_ascii_digit() => {
                             let d = k.chars().next().unwrap();
                             keys.iter().any(|kc| match kc {
@@ -239,7 +236,6 @@ impl Context {
                                 _ => false,
                             })
                         }
-
                         k if k.len() == 1 => {
                             let c = k.chars().next().unwrap().to_ascii_lowercase();
                             keys.iter().any(|kc| match kc {
@@ -272,7 +268,6 @@ impl Context {
                                 _ => false,
                             })
                         }
-
                         _ => false,
                     };
 
@@ -373,7 +368,7 @@ impl Context {
                     .collect::<Result<Vec<_>, _>>()?;
 
                 if let Some(cmd) = self.cmds.get(name) {
-                    Ok(cmd(vals))
+                    Ok(cmd(self, vals))
                 } else {
                     let f = self
                         .funcs

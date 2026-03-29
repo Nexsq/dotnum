@@ -1,13 +1,13 @@
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use std::{collections::HashMap, thread, time::Duration};
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("sleep".into(), sleep);
 }
 
-fn sleep(args: Vec<Value>) -> Value {
+fn sleep(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("sleep", &args, 1) {
         return e;
     }

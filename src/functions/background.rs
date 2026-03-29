@@ -1,5 +1,5 @@
 use super::BuiltinFn;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use std::collections::HashMap;
 
 #[cfg(windows)]
@@ -9,7 +9,7 @@ pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("background".into(), background);
 }
 
-fn background(_args: Vec<Value>) -> Value {
+fn background(_ctx: &Context, _args: Vec<Value>) -> Value {
     #[cfg(windows)]
     unsafe {
         FreeConsole();

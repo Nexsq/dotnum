@@ -1,6 +1,6 @@
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use std::collections::HashMap;
 
 #[cfg(windows)]
@@ -10,7 +10,7 @@ pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("get_resolution".into(), get_resolution);
 }
 
-fn get_resolution(args: Vec<Value>) -> Value {
+fn get_resolution(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("get_resolution", &args, 1) {
         return e;
     }

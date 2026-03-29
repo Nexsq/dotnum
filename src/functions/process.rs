@@ -3,13 +3,13 @@ use sysinfo::{ProcessesToUpdate, System};
 
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("process".into(), process);
 }
 
-fn process(args: Vec<Value>) -> Value {
+fn process(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("process", &args, 1) {
         return e;
     }

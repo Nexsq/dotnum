@@ -1,13 +1,13 @@
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value}; 
 use std::collections::HashMap;
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("abs".into(), abs);
 }
 
-fn abs(args: Vec<Value>) -> Value {
+fn abs(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("abs", &args, 1) {
         return e;
     }

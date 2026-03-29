@@ -1,5 +1,6 @@
+use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use std::collections::HashMap;
 
 #[cfg(target_os = "windows")]
@@ -7,11 +8,11 @@ unsafe extern "system" {
     fn Beep(freq: u32, duration: u32) -> i32;
 }
 
-pub fn register(map: &mut HashMap<String, fn(Vec<Value>) -> Value>) {
+pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("beep".into(), beep);
 }
 
-fn beep(args: Vec<Value>) -> Value {
+fn beep(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("beep", &args, 1) {
         return e;
     }

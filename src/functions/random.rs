@@ -1,12 +1,14 @@
+use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use rand::Rng;
+use std::collections::HashMap;
 
-pub fn register(map: &mut std::collections::HashMap<String, fn(Vec<Value>) -> Value>) {
+pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("random".into(), random);
 }
 
-fn random(args: Vec<Value>) -> Value {
+fn random(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("random", &args, 2) {
         return e;
     }

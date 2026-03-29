@@ -1,12 +1,12 @@
 use super::BuiltinFn;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use std::collections::HashMap;
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("print".into(), print);
 }
 
-fn print(args: Vec<Value>) -> Value {
+fn print(_ctx: &Context, args: Vec<Value>) -> Value {
     for v in args {
         match v {
             Value::Num(n) => print!("{}", n),

@@ -5,7 +5,7 @@ use std::io::ErrorKind;
 
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 
 struct CaptureState {
     capturer: Capturer,
@@ -45,7 +45,7 @@ where
     })
 }
 
-fn get_color(args: Vec<Value>) -> Value {
+fn get_color(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("get_color", &args, 2) {
         return e;
     }

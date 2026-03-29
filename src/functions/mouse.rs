@@ -3,13 +3,13 @@ use std::collections::HashMap;
 
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("mouse".into(), mouse);
 }
 
-fn mouse(args: Vec<Value>) -> Value {
+fn mouse(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("mouse", &args, 3) {
         return e;
     }

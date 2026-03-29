@@ -1,20 +1,20 @@
-use enigo::{Axis, Enigo, Mouse, Settings};
+use enigo::{Axis, Mouse};
 use std::collections::HashMap;
 
 use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 
 pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("scroll".into(), scroll);
 }
 
-fn scroll(args: Vec<Value>) -> Value {
+fn scroll(ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("scroll", &args, 2) {
         return e;
     }
 
-    let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    let mut enigo = ctx.enigo.lock().unwrap();
 
     let amount = match args.get(0) {
         Some(Value::Num(n)) => *n as i32,
@@ -31,5 +31,5 @@ fn scroll(args: Vec<Value>) -> Value {
     };
 
     let _ = enigo.scroll(amount, axis);
-    Value::Bool(false)
+    Value::Bool(true)
 }

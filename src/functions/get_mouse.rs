@@ -1,12 +1,14 @@
+use super::BuiltinFn;
 use crate::functions::expect_arity;
-use crate::interpreter::Value;
+use crate::interpreter::{Context, Value};
 use device_query::{DeviceQuery, DeviceState};
+use std::collections::HashMap;
 
-pub fn register(map: &mut std::collections::HashMap<String, fn(Vec<Value>) -> Value>) {
+pub fn register(map: &mut HashMap<String, BuiltinFn>) {
     map.insert("get_mouse".into(), get_mouse);
 }
 
-fn get_mouse(args: Vec<Value>) -> Value {
+fn get_mouse(_ctx: &Context, args: Vec<Value>) -> Value {
     if let Err(e) = expect_arity("get_mouse", &args, 1) {
         return e;
     }
